@@ -22,8 +22,15 @@ channel_map = dict()
 
 @bot.command()
 @commands.dm_only()
-async def conf(ctx, guild_id, message=""):
+async def conf(ctx, *, message=''):
+	print(message)
 	if len(message) != 0 or ctx.message.attatchments != []:
+
+		# parse the message ourselves, since we just want to take in the whole message as is
+		message = message.split(' ', 1)
+		guild_id = message[0]
+		message = message[1]
+		print(guild_id, message)
 
 		# verify that this is a valid guild
 		try:
