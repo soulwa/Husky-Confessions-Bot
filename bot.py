@@ -30,7 +30,7 @@ async def conf(ctx, guild_id, message=""):
 
 		# verify that there is a channel for this guild
 		try:
-			channel_id = retrieve_channel(gid)
+			channel_id = retrieve_conf_channel(gid)
 		except KeyError:
 			await ctx.send('This guild is not configured with confessions++ yet.')
 		
@@ -47,11 +47,11 @@ async def conf(ctx, guild_id, message=""):
 
 		# now we can send the message (hopefully)
 		now = datetime.now()
-		current_time = now.strftime("%m/%d %H:%M")
+		# current_time = now.strftime("%m/%d %H:%M")
 
 		# make message into embed
 		embed = discord.Embed(description=message)
-		embed.set_footer(text=current_time)
+		embed.timestamp = now
 
 		# add image attatchments to the file
 		files = []
@@ -69,11 +69,29 @@ async def conf(ctx, guild_id, message=""):
 
 		await channel.send(embed=embed)
 
+		# log the confession if the channel set up
+		try:
+			log_channel_id = retrieve_log_channel(gid)
+		except KeyError:
+			pass
+		else:
+			log_msg = ctx.message.author.mention + ': ' + message
+			log_embed = discord.Embed(description=log_msg)
+			log_embed.set_author(name="Confession by " + str(ctx.message.author), icon_url=ctx.message.author.avatar_url)
+			footer = 'user id: ' + str(user_id)
+			log_embed.set_footer(text=footer)
+			log_embed.timestamp = now
+			log_channel = guild.get_channel(log_channel_id)
+
+			await log_channel.send(embed=log_embed)
+
+
 		await ctx.send('Your message has been sent to ' + guild.name)
 
 
 @bot.command()
 @commands.guild_only()
+@commands.has_guild_permissions(manage_guild=True)
 async def set(ctx):
 	channel_id = ctx.channel.id
 	guild_id = ctx.guild.id
@@ -85,9 +103,10 @@ async def set(ctx):
 
 @bot.command()
 @commands.guild_only()
+@commands.has_guild_permissions(manage_guild=True)
 async def log(ctx):
-	channel_id = ctx.channel_id
-	guild_id = ctx.guild_id
+	channel_id = ctx.channel.id
+	guild_id = ctx.guild.id
 
 	add_log_channel(guild_id, channel_id)
 	await ctx.send('Added ' + ctx.channel.name + ' as the log channel for ' + ctx.guild.name)
