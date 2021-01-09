@@ -17,10 +17,13 @@ tz = timezone('US/Eastern')
 intents = discord.Intents.default()
 intents.members = True
 
-bot = commands.Bot(command_prefix='!', intents=intents)
+help_command = commands.DefaultHelpCommand(no_category="Commands", verify_checks=False)
+
+bot = commands.Bot(command_prefix='!', intents=intents, help_command=help_command)
 channel_map = dict()
 
-@bot.command()
+@bot.command(usage="<server id> <message>", help="confess server id and message to the bot to send an anonymous message. dm only.",
+	brief="dm the bot a server id and confession")
 @commands.dm_only()
 async def conf(ctx, *, message=''):
 	print(message)
@@ -99,7 +102,7 @@ async def conf(ctx, *, message=''):
 		await ctx.send('Your message has been sent to ' + guild.name)
 
 
-@bot.command()
+@bot.command(help="use in a channel to set it as the confessions channel", brief="sets confessions channel")
 @commands.guild_only()
 @commands.has_guild_permissions(manage_guild=True)
 async def set(ctx):
@@ -111,7 +114,7 @@ async def set(ctx):
 	await ctx.send('Added ' + ctx.channel.name + ' as the confessions channel for ' + ctx.guild.name)
 
 
-@bot.command()
+@bot.command(help="use in a channel to set it as the logging channel", brief="sets logging channel")
 @commands.guild_only()
 @commands.has_guild_permissions(manage_guild=True)
 async def log(ctx):
