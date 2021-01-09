@@ -2,6 +2,7 @@ import discord
 import os
 
 from datetime import datetime
+from pytz import timezone
 from discord.ext import commands
 from dotenv import load_dotenv
 from io import BytesIO
@@ -10,6 +11,8 @@ from channel_map import retrieve_conf_channel, retrieve_log_channel, add_confess
 
 load_dotenv()
 BOT_TOKEN = os.getenv('BOT_TOKEN')
+
+tz = timezone('US/Eastern')
 
 intents = discord.Intents.default()
 intents.members = True
@@ -46,7 +49,7 @@ async def conf(ctx, guild_id, message=""):
 				await ctx.send('You are not in that server!')
 
 		# now we can send the message (hopefully)
-		now = datetime.now()
+		now = datetime.now(tz)
 		# current_time = now.strftime("%m/%d %H:%M")
 
 		# make message into embed
