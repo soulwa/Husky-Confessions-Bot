@@ -19,7 +19,9 @@ intents.members = True
 
 help_command = commands.DefaultHelpCommand(no_category="Commands", verify_checks=False)
 
-bot = commands.Bot(command_prefix='!', intents=intents, help_command=help_command)
+game = discord.Game("dm !conf <server id>")
+
+bot = commands.Bot(command_prefix='!', intents=intents, help_command=help_command, activity=game)
 channel_map = dict()
 
 @bot.command(usage="<server id> <message>", help="confess server id and message to the bot to send an anonymous message. dm only.",
