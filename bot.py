@@ -35,7 +35,6 @@ async def conf(ctx, *, message=''):
 		message = message.split(' ', 1)
 		guild_id = message[0]
 		message = message[1]
-		print(guild_id, message)
 
 		# verify that this is a valid guild
 		try:
