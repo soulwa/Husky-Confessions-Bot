@@ -29,12 +29,20 @@ channel_map = dict()
 @commands.dm_only()
 async def conf(ctx, *, message=''):
 	print(message)
-	if len(message) != 0 or ctx.message.attatchments != []:
+	if len(message) != 0 or ctx.message.attachments != []:
 
 		# parse the message ourselves, since we just want to take in the whole message as is
 		message = message.split(' ', 1)
 		guild_id = message[0]
-		message = message[1]
+
+		# the message might be empty, with an image
+		if len(message) == 1 and ctx.message.attachments != []:
+			message = ""
+		elif len(message) == 1:
+			await ctx.send('Can\'t send a blank confession!')
+			return
+		else:
+			message = message[1]
 
 		# verify that this is a valid guild
 		try:
@@ -124,5 +132,31 @@ async def log(ctx):
 
 	add_log_channel(guild_id, channel_id)
 	await ctx.send('Added ' + ctx.channel.name + ' as the log channel for ' + ctx.guild.name)
+
+
+@bot.command(help="use with a user to prevent them from confessing in this server", brief="bans for this server")
+@commands.guild_only()
+@commands.has_guild_permissions(manage_guild=True)
+async def block(ctx, member: discord.Member):
+	block_user(int(ctx.guild.id), member.id)
+
+@block.error
+async def block_error(ctx, error):
+	if isinstance(error, commands.MemberNotFound):
+		print('block failed with error: argument not a member')
+		await ctx.send('User not found in this server.')
+
+@bot.command(help="use with a user to allow them to confess in this server again", brief="unbans for this server")
+@commands.guild_only()
+@commands.has_guild_permissions(manage_guild=True)
+async def allow(ctx, member: discord.Member):
+	blist = fetch_blocked(ctx.guild.id)
+	if member.id in blist:
+		unblock_user(ctx.guild.id, member.id)
+		await ctx.send('User {member} has been unblocked'.format(member=str(member)))
+	else:
+		await ctx.send('That user is not blocked!')
+
+
 
 bot.run(BOT_TOKEN)
