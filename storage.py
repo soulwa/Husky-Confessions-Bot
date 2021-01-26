@@ -58,12 +58,7 @@ def allow_user(message_id):
 		r.expire(message_id, 7200)
 
 
-# TODO: salt with the server id as well
-# cryptographically secure salt? stored w user?
-# fear of associating user with salt having to be stored for longer -- would become clear who's blocked
 def hash_and_store_user(message_id, user_id, guild_id):
-	# salt = bcrypt.gensalt()
-	# salted_user = salt + str(user_id)
 	hashed = bcrypt.hashpw(bytes(str(guild_id) + str(user_id), encoding='utf-8'), bcrypt.gensalt())
 	r.setex(name=message_id, time=21600, value=hashed)
 
