@@ -64,12 +64,15 @@ def allow_user(message_id):
 def hash_and_store_user(message_id, user_id, guild_id):
 	# salt = bcrypt.gensalt()
 	# salted_user = salt + str(user_id)
-	hashed = hashlib.sha256(bytes(str(guild_id) + str(user_id), encoding='utf-8')).digest()
+	hashed = bcrypt.hashpw(bytes(str(guild_id) + str(user_id), encoding='utf-8'), bcrypt.gensalt())
 	r.setex(name=message_id, time=21600, value=hashed)
+
+	# store messages for 6 hr at a time so it cycles -- gives mods enough time to act
+	# could make this into param for servers to set for less if necessary
 	r.expire(message_id, 21600)
 
 
 def is_blocked(user_id, guild_id):
-	hashed = hashlib.sha256(bytes(str(guild_id) + str(user_id), encoding='utf-8')).digest()
-	return hashed in [i for i in r.smembers("blocked")]
+	user_key = bytes(str(guild_id) + str(user_id), encoding='utf-8')
+	return any([bcrypt.checkpw(user_key, user_hash) for user_hash in r.smembers("blocked")])
 

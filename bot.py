@@ -100,7 +100,6 @@ async def conf(ctx, *, message=''):
 			await ctx.send('This channel does not exist')
 
 		my_message = await channel.send(embed=embed)
-		print(my_message.id)
 
 		# log the confession if the channel set up
 		try:
@@ -158,7 +157,7 @@ async def block(ctx, message_id):
 		await ctx.send('User blocked from using confessions on this server.')
 
 
-@bot.command(help="use with a message to allow its sender to confess in this server again", brief="unbans for this server")
+@bot.command(help="use with a message to allow its sender to confess in this server again", brief="unblocks for this server")
 @commands.guild_only()
 @commands.has_guild_permissions(manage_guild=True)
 async def allow(ctx, message_id):
@@ -168,6 +167,17 @@ async def allow(ctx, message_id):
 		await ctx.send('That user is not blocked!')
 	else:
 		await ctx.send('User has been unblocked.')
+
+
+@bot.command(help="use to check if log channel exists", brief="checks if logs")
+@commands.guild_only()
+async def logexists(ctx):
+	try:
+		retrieve_log_channel(ctx.guild.id)
+	except KeyError:
+		await ctx.send("no logs configured")
+	else:
+		await ctx.send("logs have been configured")
 
 
 bot.run(BOT_TOKEN)
