@@ -1,49 +1,29 @@
-# HuskyBot
-A Discord bot for the Northeastern '24 server. 
+# confessions-bot-plus
+A Discord bot with anonymous messages, easy setup in any server and stronger, free moderation features.
 
 ## Features
 
-* Private message a bot and have it output your message into a separate channel (anonymously)!
-* User verification (outside members who DM the bot will fail)
-* Picture support (upload the image onto Discord)
-* Embed styling (includes text, picture, and time/date)
-
-## Screenshots
-
-**Example Private Message**
-
-![Private Message the Bot](pictures/botPM.png)
-
-
-**Example Output**
-
-![Output](pictures/botOutput.png)
-
-
-**Example Failed Message**
-
-![Failed Message](pictures/botVerification.png)
+* private message a bot with the `!conf <server id>` command to send your message to a supported server
+* user verification (outside members who DM the bot will fail)
+* support for images 
+* easy setup: use `!set` in the channel you want to make it the confessions channel
+* moderation tools: use `!log` in a channel to log confessions with user information
 
 ## Running
-    # For the host:
-    python bot.py
+confessions-bot-plus currently runs on Heroku, with a Redis database to store channels.
 
-    # For the user:
-    Private message a bot: !conf (message)
-    (Attach a picture using Discord's upload system)
+To run the bot yourself, locally, install the requirements with
+```bash
+$ pip3 install -r requirements.txt
+```
+Then, make sure the REDIS_URL and BOT_TOKEN environment variables are set, and run
+```bash
+$ python3 bot.py
+```
 
-## Things the User Must Do
-Before running the bot, add the following 2 IDs in the bot.py file (at the top):
-* Guild/Server ID (int)
-* Channel ID (int)
-* Bot Token ID (string)
+## Planned features
+- [ ] blacklist user feature
+- [ ] video support
+- [ ] store logs on the backend
+- [ ] remove in-server logs for true anonymity (logs supported on feature branch)
 
-## Requirements
-Requires Python, discord.py and NodeJS.
-
-## Installing discord.py
-    # Linux/macOS
-    python3 -m pip install -U discord.py
-
-    # Windows
-    py -3 -m pip install -U discord.py
