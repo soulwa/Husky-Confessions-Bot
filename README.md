@@ -22,8 +22,8 @@ $ python3 bot.py
 ```
 
 ## Planned features
-- [ ] blacklist user feature
+- [x] blacklist user feature
 - [ ] video support
-- [ ] store logs on the backend
+- [x] store logs on the backend
 - [ ] remove in-server logs for true anonymity (logs supported on feature branch)
 
