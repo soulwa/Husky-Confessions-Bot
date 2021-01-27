@@ -30,6 +30,15 @@ def retrieve_log_channel(guild_id):
 		return int(channel_id)
 
 
+def remove_log_channel(guild_id):
+	try:
+		logging_map.pop(guild_id)
+	except KeyError:
+		raise KeyError("No logging channel found")
+	else:
+		r.hdel("log", key=guild_id)
+
+
 def add_confessions_channel(guild_id, channel_id):
 	channel_map[guild_id] = channel_id
 	r.hset("conf", key=guild_id, value=channel_id)

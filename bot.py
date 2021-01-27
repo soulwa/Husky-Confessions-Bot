@@ -7,7 +7,7 @@ from discord.ext import commands
 from dotenv import load_dotenv
 from io import BytesIO
 
-from storage import retrieve_conf_channel, retrieve_log_channel, add_confessions_channel, add_log_channel
+from storage import retrieve_conf_channel, retrieve_log_channel, add_confessions_channel, add_log_channel, remove_log_channel
 from storage import is_blocked, hash_and_store_user, block_user, allow_user
 
 load_dotenv()
@@ -143,6 +143,18 @@ async def log(ctx):
 
 	add_log_channel(guild_id, channel_id)
 	await ctx.send('Added ' + ctx.channel.name + ' as the log channel for ' + ctx.guild.name)
+
+@bot.command(help="use in a channel to remove logging channel", brief="disables logs")
+@commands.guild_only()
+@commands.has_guild_permissions(manage_guild=True)
+async def rmlog(ctx):
+	guild_id = ctx.guild.id
+	try:
+		remove_log_channel(guild_id)
+	except KeyError:
+		await ctx.send('No logging channel to remove!')
+	else:
+		await ctx.send('Logs have been removed.')
 
 
 @bot.command(help="use with a message id to prevent its sender from confessing in this server", brief="bans for this server")
