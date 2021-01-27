@@ -7,7 +7,8 @@ from discord.ext import commands
 from dotenv import load_dotenv
 from io import BytesIO
 
-from channel_map import retrieve_conf_channel, retrieve_log_channel, add_confessions_channel, add_log_channel
+from storage import retrieve_conf_channel, retrieve_log_channel, add_confessions_channel, add_log_channel
+from storage import is_blocked, hash_and_store_user, block_user, allow_user
 
 load_dotenv()
 BOT_TOKEN = os.getenv('BOT_TOKEN')
@@ -46,26 +47,35 @@ async def conf(ctx, *, message=''):
 
 		# verify that this is a valid guild
 		try:
-			gid = int(guild_id)
+			guild_id = int(guild_id)
 		except ValueError:
 			await ctx.send('Invalid server id.')
+			return
 
 		# verify that there is a channel for this guild
 		try:
-			channel_id = retrieve_conf_channel(gid)
+			channel_id = retrieve_conf_channel(guild_id)
 		except KeyError:
 			await ctx.send('This guild is not configured with confessions++ yet.')
+			return
 		
 		# checks to perform: is the bot in the guild and is the user in the guild
 		# might be able to eliminate the first check, because of how k v pairs are stored
-		guild = bot.get_guild(gid)
+		guild = bot.get_guild(guild_id)
 		if guild is None:
 			await ctx.send('This bot is not in that server.')
+			return
 		else:
 			user_id = ctx.message.author.id
 			member = guild.get_member(user_id)
 			if member is None:
 				await ctx.send('You are not in that server!')
+				return
+
+		# we need to check if the user is allowed to use confessions in that server
+		if is_blocked(user_id, guild.id):
+			await ctx.send("You are blocked from confessions in that server!")
+			return
 
 		# now we can send the message (hopefully)
 		now = datetime.now(tz)
@@ -89,11 +99,11 @@ async def conf(ctx, *, message=''):
 		if channel is None:
 			await ctx.send('This channel does not exist')
 
-		await channel.send(embed=embed)
+		my_message = await channel.send(embed=embed)
 
 		# log the confession if the channel set up
 		try:
-			log_channel_id = retrieve_log_channel(gid)
+			log_channel_id = retrieve_log_channel(guild_id)
 		except KeyError:
 			pass
 		else:
@@ -107,8 +117,9 @@ async def conf(ctx, *, message=''):
 
 			await log_channel.send(embed=log_embed)
 
-
 		await ctx.send('Your message has been sent to ' + guild.name)
+
+		hash_and_store_user(my_message.id, ctx.message.author.id, guild_id)
 
 
 @bot.command(help="use in a channel to set it as the confessions channel", brief="sets confessions channel")
@@ -134,29 +145,39 @@ async def log(ctx):
 	await ctx.send('Added ' + ctx.channel.name + ' as the log channel for ' + ctx.guild.name)
 
 
-@bot.command(help="use with a user to prevent them from confessing in this server", brief="bans for this server")
+@bot.command(help="use with a message id to prevent its sender from confessing in this server", brief="bans for this server")
 @commands.guild_only()
 @commands.has_guild_permissions(manage_guild=True)
-async def block(ctx, member: discord.Member):
-	block_user(int(ctx.guild.id), member.id)
-
-@block.error
-async def block_error(ctx, error):
-	if isinstance(error, commands.MemberNotFound):
-		print('block failed with error: argument not a member')
-		await ctx.send('User not found in this server.')
-
-@bot.command(help="use with a user to allow them to confess in this server again", brief="unbans for this server")
-@commands.guild_only()
-@commands.has_guild_permissions(manage_guild=True)
-async def allow(ctx, member: discord.Member):
-	blist = fetch_blocked(ctx.guild.id)
-	if member.id in blist:
-		unblock_user(ctx.guild.id, member.id)
-		await ctx.send('User {member} has been unblocked'.format(member=str(member)))
+async def block(ctx, message_id):
+	try:
+		block_user(message_id)
+	except KeyError:
+		await ctx.send('This message is not available.')
 	else:
-		await ctx.send('That user is not blocked!')
+		await ctx.send('User blocked from using confessions on this server.')
 
+
+@bot.command(help="use with a message to allow its sender to confess in this server again", brief="unblocks for this server")
+@commands.guild_only()
+@commands.has_guild_permissions(manage_guild=True)
+async def allow(ctx, message_id):
+	try:
+		allow_user(message_id)
+	except KeyError:
+		await ctx.send('That user is not blocked!')
+	else:
+		await ctx.send('User has been unblocked.')
+
+
+@bot.command(help="use to check if log channel exists", brief="checks if logs")
+@commands.guild_only()
+async def logexists(ctx):
+	try:
+		retrieve_log_channel(ctx.guild.id)
+	except KeyError:
+		await ctx.send("no logs configured")
+	else:
+		await ctx.send("logs have been configured")
 
 
 bot.run(BOT_TOKEN)
