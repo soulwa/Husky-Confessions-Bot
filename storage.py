@@ -36,7 +36,7 @@ def remove_log_channel(guild_id):
 	except KeyError:
 		raise KeyError("No logging channel found")
 	else:
-		r.hdel("log", key=guild_id)
+		r.hdel("log", guild_id)
 
 
 def add_confessions_channel(guild_id, channel_id):
