@@ -35,11 +35,6 @@ def add_confessions_channel(guild_id, channel_id):
 	r.hset("conf", key=guild_id, value=channel_id)
 
 
-def add_log_channel(guild_id, channel_id):
-	logging_map[guild_id] = channel_id
-	r.hset("log", key=guild_id, value=channel_id)
-
-
 def block_user(message_id):
 	hashed_user = r.get(name=message_id)
 	if hashed_user is None:

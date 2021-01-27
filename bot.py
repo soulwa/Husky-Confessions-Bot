@@ -7,7 +7,7 @@ from discord.ext import commands
 from dotenv import load_dotenv
 from io import BytesIO
 
-from storage import retrieve_conf_channel, retrieve_log_channel, add_confessions_channel, add_log_channel
+from storage import retrieve_conf_channel, retrieve_log_channel, add_confessions_channel, add_log_channel, remove_log_channel
 from storage import is_blocked, hash_and_store_user, block_user, allow_user
 
 load_dotenv()
@@ -101,22 +101,6 @@ async def conf(ctx, *, message=''):
 
 		my_message = await channel.send(embed=embed)
 
-		# log the confession if the channel set up
-		try:
-			log_channel_id = retrieve_log_channel(guild_id)
-		except KeyError:
-			pass
-		else:
-			log_msg = ctx.message.author.mention + ': ' + message
-			log_embed = discord.Embed(description=log_msg)
-			log_embed.set_author(name="Confession by " + str(ctx.message.author), icon_url=ctx.message.author.avatar_url)
-			footer = 'user id: ' + str(user_id)
-			log_embed.set_footer(text=footer)
-			log_embed.timestamp = now
-			log_channel = guild.get_channel(log_channel_id)
-
-			await log_channel.send(embed=log_embed)
-
 		await ctx.send('Your message has been sent to ' + guild.name)
 
 		hash_and_store_user(my_message.id, ctx.message.author.id, guild_id)
@@ -134,15 +118,17 @@ async def set(ctx):
 	await ctx.send('Added ' + ctx.channel.name + ' as the confessions channel for ' + ctx.guild.name)
 
 
-@bot.command(help="use in a channel to set it as the logging channel", brief="sets logging channel")
+@bot.command(help="use in a channel to remove logging channel", brief="disables logs")
 @commands.guild_only()
 @commands.has_guild_permissions(manage_guild=True)
-async def log(ctx):
-	channel_id = ctx.channel.id
+async def rmlog(ctx):
 	guild_id = ctx.guild.id
-
-	add_log_channel(guild_id, channel_id)
-	await ctx.send('Added ' + ctx.channel.name + ' as the log channel for ' + ctx.guild.name)
+	try:
+		remove_log_channel(guild_id)
+	except KeyError:
+		await ctx.send('No logging channel to remove!')
+	else:
+		await ctx.send('Logs have been removed.')
 
 
 @bot.command(help="use with a message id to prevent its sender from confessing in this server", brief="bans for this server")
