@@ -7,7 +7,7 @@ from discord.ext import commands
 from dotenv import load_dotenv
 from io import BytesIO
 
-from storage import retrieve_conf_channel, retrieve_log_channel, add_confessions_channel, add_log_channel, remove_log_channel
+from storage import retrieve_conf_channel, retrieve_log_channel, add_confessions_channel, remove_log_channel
 from storage import is_blocked, hash_and_store_user, block_user, allow_user
 
 load_dotenv()
